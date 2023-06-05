@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import {
   StyleSheet,
@@ -14,10 +14,17 @@ import {
   Platform,
 } from 'react-native';
 
+const initialState = {
+  login: '',
+  email: '',
+  password: '',
+};
+
 export default function RegistrationScreen() {
   const [showPassword, setShowPassword] = useState(true);
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
   const [focusedInput, setFocusedInput] = useState(null);
+  const [state, setState] = useState(initialState);
 
   const keyboardHide = () => {
     setIsShowKeyboard(false);
@@ -35,6 +42,11 @@ export default function RegistrationScreen() {
   };
 
   const isInputFocused = inputName => focusedInput === inputName;
+
+  const onSubmitPress = () => {
+    console.log(state);
+    setState(initialState);
+  };
 
   return (
     <TouchableWithoutFeedback onPress={keyboardHide}>
@@ -67,6 +79,8 @@ export default function RegistrationScreen() {
                     placeholderTextColor="#BDBDBD"
                     onFocus={() => handleInputFocus('login')}
                     onBlur={handleInputBlur}
+                    onChangeText={value => setState(prevState => ({ ...prevState, login: value }))}
+                    value={state.login}
                   />
                 </View>
 
@@ -77,6 +91,8 @@ export default function RegistrationScreen() {
                     placeholderTextColor="#BDBDBD"
                     onFocus={() => handleInputFocus('email')}
                     onBlur={handleInputBlur}
+                    onChangeText={value => setState(prevState => ({ ...prevState, email: value }))}
+                    value={state.email}
                   />
                 </View>
 
@@ -88,6 +104,13 @@ export default function RegistrationScreen() {
                     secureTextEntry={showPassword}
                     onFocus={() => handleInputFocus('password')}
                     onBlur={handleInputBlur}
+                    onChangeText={value =>
+                      setState(prevState => ({
+                        ...prevState,
+                        password: value,
+                      }))
+                    }
+                    value={state.password}
                   />
                   <TouchableOpacity
                     onPress={() => setShowPassword(!showPassword)}
@@ -101,7 +124,11 @@ export default function RegistrationScreen() {
                   </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity activeOpacity={0.8} style={styles.btnRegistr}>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  style={styles.btnRegistr}
+                  onPress={onSubmitPress}
+                >
                   <Text style={styles.btnText}>Зареєструватися</Text>
                 </TouchableOpacity>
                 <Text style={styles.text}>Вже є акаунт? Увійти</Text>
@@ -161,8 +188,7 @@ const styles = StyleSheet.create({
   },
   title: {
     marginBottom: 32,
-    fontFamily: 'Roboto',
-    fontWeight: 500,
+    fontFamily: 'Roboto-Medium',
     fontStyle: 'normal',
     fontSize: 30,
     lineHeight: 35,
@@ -190,7 +216,7 @@ const styles = StyleSheet.create({
   },
   showPassword: {
     color: '#1B4371',
-    fontFamily: 'Roboto',
+    fontFamily: 'Roboto-Regular',
     fontStyle: 'normal',
     fontWeight: 400,
     textAlign: 'right',
@@ -206,7 +232,7 @@ const styles = StyleSheet.create({
     borderRadius: 100,
   },
   btnText: {
-    fontFamily: 'Roboto',
+    fontFamily: 'Roboto-Regular',
     fontWeight: 400,
     fontStyle: 'normal',
     fontSize: 16,
@@ -214,7 +240,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   text: {
-    fontFamily: 'Roboto',
+    fontFamily: 'Roboto-Regular',
     fontStyle: 'normal',
     fontWeight: 400,
     fontSize: 16,
