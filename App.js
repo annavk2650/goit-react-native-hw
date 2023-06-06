@@ -1,8 +1,11 @@
 import { useFonts } from 'expo-font';
-import LoginScreen from './screens/LoginScreen';
-import RegistrationScreen from './screens/RegistrationScreen';
+import 'react-native-gesture-handler';
+import { NavigationContainer } from '@react-navigation/native';
+import { useRoute } from './router';
 
 export default function App() {
+  const routing = useRoute(false);
+
   const [fonstLoaded] = useFonts({
     'Roboto-Regular': require('./assets/fonts/Roboto-Regular.ttf'),
     'Roboto-Medium': require('./assets/fonts/Roboto-Medium.ttf'),
@@ -11,10 +14,5 @@ export default function App() {
     return null;
   }
 
-  return (
-    <>
-      {/* <RegistrationScreen /> */}
-      <LoginScreen />
-    </>
-  );
+  return <NavigationContainer>{routing}</NavigationContainer>;
 }
