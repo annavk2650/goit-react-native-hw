@@ -6,6 +6,7 @@ import PostsScreen from './PostsScreen';
 import CreatePostsScreen from './CreatePostsScreen';
 import ProfileScreen from './ProfileScreen';
 import { Feather } from '@expo/vector-icons';
+import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 
 const MainTab = createBottomTabNavigator();
 
@@ -25,6 +26,14 @@ const Home = ({ navigation }) => {
         name="Posts"
         component={PostsScreen}
         options={({ route }) => ({
+          headerShown: false,
+          tabBarStyle: (route => {
+            const routeName = getFocusedRouteNameFromRoute(route) ?? '';
+            if (routeName === 'Comments' || routeName === 'Map') {
+              return { display: 'none' };
+            }
+            return;
+          })(route),
           tabBarIcon: ({ focused, size, color }) => (
             <TouchableOpacity
               onPress={() => {
@@ -37,28 +46,28 @@ const Home = ({ navigation }) => {
               </View>
             </TouchableOpacity>
           ),
-          headerTitle: 'Публікації',
-          headerTitleAlign: 'center',
-          headerStyle: {
-            height: 88,
-            backgroundColor: '#FFFFFF',
-            shadowColor: 'rgba(0, 0, 0, 0.3)',
-            shadowOffset: { width: 0, height: 0.5 },
-            shadowRadius: 1.35914,
-          },
-          headerTitleStyle: {
-            fontFamily: 'Roboto-Medium',
-            fontStyle: 'normal',
-            fontSize: 17,
-            lineHeight: 22,
-            letterSpacing: -0.408,
-          },
-          headerTintColor: '#212121',
-          headerRight: () => (
-            <TouchableOpacity style={{ marginRight: 19 }} onPress={'handleSignOut'}>
-              <Feather name="log-out" size={24} color="#BDBDBD" />
-            </TouchableOpacity>
-          ),
+          // headerTitle: 'Публікації',
+          // headerTitleAlign: 'center',
+          // headerStyle: {
+          //   height: 88,
+          //   backgroundColor: '#FFFFFF',
+          //   shadowColor: 'rgba(0, 0, 0, 0.3)',
+          //   shadowOffset: { width: 0, height: 0.5 },
+          //   shadowRadius: 1.35914,
+          // },
+          // headerTitleStyle: {
+          //   fontFamily: 'Roboto-Medium',
+          //   fontStyle: 'normal',
+          //   fontSize: 17,
+          //   lineHeight: 22,
+          //   letterSpacing: -0.408,
+          // },
+          // headerTintColor: '#212121',
+          // headerRight: () => (
+          //   <TouchableOpacity style={{ marginRight: 19 }} onPress={'handleSignOut'}>
+          //     <Feather name="log-out" size={24} color="#BDBDBD" />
+          //   </TouchableOpacity>
+          // ),
         })}
       />
       <MainTab.Screen
