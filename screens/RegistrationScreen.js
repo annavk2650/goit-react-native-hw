@@ -4,27 +4,38 @@ import {
   StyleSheet,
   View,
   ImageBackground,
-  Image,
-  TouchableOpacity,
   Text,
-  TouchableWithoutFeedback,
+  TouchableOpacity,
+  Image,
   KeyboardAvoidingView,
-  Keyboard,
   Platform,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from 'react-native';
+import { useDispatch } from 'react-redux';
 
+import * as ImagePicker from 'expo-image-picker';
+import { uploadBytes, ref, getDownloadURL } from 'firebase/storage';
+
+import { authSignUpUser } from '../redux/auth/authOperation';
+
+import { storage } from '../firebase/config';
+
+import LoginInput from '../components/loginInput';
 import EmailInput from '../components/emailInput';
 import PasswordInput from '../components/passwordInput';
 import FormButton from '../components/formButton';
-import LoginInput from '../components/loginInput';
 
 const RegistrationScreen = ({ navigation }) => {
-  const [showPassword, setShowPassword] = useState(true);
+  const [passwordShow, setPasswordShow] = useState(true);
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
   const [focusedInput, setFocusedInput] = useState(null);
   const [login, setLogin] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [avatar, setAvatar] = useState(null);
+
+  const dispatch = useDispatch();
 
   const keyboardHide = () => {
     setIsShowKeyboard(false);
@@ -43,9 +54,41 @@ const RegistrationScreen = ({ navigation }) => {
 
   const isInputFocused = inputName => focusedInput === inputName;
 
-  const onSubmitPress = () => {
-    console.log(login, email, password);
-    navigation.navigate('Home');
+  const pickAvatar = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setAvatar(result.assets[0].uri);
+    }
+  };
+
+  const removeAvatar = () => {
+    setAvatar(null);
+  };
+
+  const uploadPhotoToServer = async () => {
+    let imageRef;
+
+    if (avatar) {
+      const response = await fetch(avatar);
+      const file = await response.blob();
+      const uniqueAvatarId = Date.now().toString();
+      imageRef = ref(storage, `userAvatars/${uniqueAvatarId}`);
+      await uploadBytes(imageRef, file);
+    }
+
+    const processedPhoto = await getDownloadURL(imageRef);
+    return processedPhoto;
+  };
+
+  const onSubmitPress = async () => {
+    const photo = await uploadPhotoToServer();
+    dispatch(authSignUpUser({ login, email, password, avatar: photo }));
     setLogin('');
     setEmail('');
     setPassword('');
@@ -57,18 +100,27 @@ const RegistrationScreen = ({ navigation }) => {
         <ImageBackground style={styles.image} source={require('../assets/images/bg-image.jpg')}>
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
             <View style={styles.box}>
-              <View style={styles.avatarBox}>
-                <Image
-                  style={styles.avatar}
-                  source={require('../assets/images/avatar.jpg')}
-                ></Image>
-                <TouchableOpacity style={styles.addAvatar} activeOpacity={0.9}>
-                  <Ionicons name="add" size={20} color={'#FF6C00'} />
-                </TouchableOpacity>
+              <View style={styles.avatar}>
+                <Image source={{ uri: avatar }} style={styles.avatarImage} />
+                {!avatar ? (
+                  <TouchableOpacity
+                    style={styles.btnAddAvatar}
+                    activeOpacity={0.9}
+                    onPress={pickAvatar}
+                  >
+                    <Ionicons name="add" size={20} color="#FF6C00" />
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    style={styles.btnRemoveAvatar}
+                    activeOpacity={0.9}
+                    onPress={removeAvatar}
+                  >
+                    <Ionicons name="close" size={20} color="#E8E8E8" />
+                  </TouchableOpacity>
+                )}
               </View>
-
               <Text style={styles.title}>Реєстрація</Text>
-
               <View
                 style={{
                   ...styles.form,
@@ -86,7 +138,6 @@ const RegistrationScreen = ({ navigation }) => {
                     isInputFocused={isInputFocused('login')}
                   />
                 </View>
-
                 <View style={{ marginBottom: 16 }}>
                   <EmailInput
                     placeholder="Адреса електронної пошти"
@@ -98,7 +149,6 @@ const RegistrationScreen = ({ navigation }) => {
                     isInputFocused={isInputFocused('email')}
                   />
                 </View>
-
                 <View style={{ marginBottom: 43 }}>
                   <PasswordInput
                     placeholder="Пароль"
@@ -108,8 +158,8 @@ const RegistrationScreen = ({ navigation }) => {
                     onChangeText={value => setPassword(value)}
                     value={password}
                     isInputFocused={isInputFocused('password')}
-                    passwordShow={showPassword}
-                    onTogglePasswordShow={() => setShowPassword(!showPassword)}
+                    passwordShow={passwordShow}
+                    onTogglePasswordShow={() => setPasswordShow(!passwordShow)}
                   />
                 </View>
                 <FormButton title="Зареєстуватися" onPress={onSubmitPress} />
@@ -124,6 +174,7 @@ const RegistrationScreen = ({ navigation }) => {
     </TouchableWithoutFeedback>
   );
 };
+
 export default RegistrationScreen;
 
 const styles = StyleSheet.create({
@@ -141,11 +192,12 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
     marginTop: 'auto',
-    paddingTop: 92,
     backgroundColor: '#FFFFFF',
+    paddingTop: 92,
   },
-  avatarBox: {
+  avatar: {
     position: 'absolute',
+
     backgroundColor: '#F6F6F6',
     borderRadius: 16,
     top: -60,
@@ -154,25 +206,41 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
   },
-  avatar: {
+  avatarImage: {
+    width: 120,
+    height: 120,
     borderRadius: 16,
   },
-  addAvatar: {
+  btnAddAvatar: {
     position: 'absolute',
     bottom: 14,
     right: -12.5,
     justifyContent: 'center',
     alignItems: 'center',
+    width: 25,
+    height: 25,
     backgroundColor: '#FFFFFF',
     borderRadius: 50,
     borderWidth: 1,
-    width: 25,
-    height: 25,
     borderStyle: 'solid',
     borderColor: '#FF6C00',
   },
+  btnRemoveAvatar: {
+    position: 'absolute',
+    bottom: 14,
+    right: -12.5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 25,
+    height: 25,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 50,
+    borderWidth: 1,
+    borderStyle: 'solid',
+    borderColor: '#E8E8E8',
+  },
   title: {
-    marginBottom: 32,
+    marginBottom: 33,
     fontFamily: 'Roboto-Medium',
     fontStyle: 'normal',
     fontSize: 30,

@@ -1,11 +1,9 @@
 import { useFonts } from 'expo-font';
-import 'react-native-gesture-handler';
-import { NavigationContainer } from '@react-navigation/native';
-import { useRoute } from './router';
+import { Provider } from 'react-redux';
+import { store } from './redux/store';
+import Main from './components/Main';
 
 export default function App() {
-  const routing = useRoute(false);
-
   const [fonstLoaded] = useFonts({
     'Roboto-Regular': require('./assets/fonts/Roboto-Regular.ttf'),
     'Roboto-Medium': require('./assets/fonts/Roboto-Medium.ttf'),
@@ -14,5 +12,9 @@ export default function App() {
     return null;
   }
 
-  return <NavigationContainer>{routing}</NavigationContainer>;
+  return (
+    <Provider store={store}>
+      <Main />
+    </Provider>
+  );
 }

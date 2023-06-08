@@ -9,6 +9,8 @@ import {
   Keyboard,
   Platform,
 } from 'react-native';
+import { useDispatch } from 'react-redux';
+import { authSignInUser } from '../redux/auth/authOperation';
 
 import EmailInput from '../components/emailInput';
 import PasswordInput from '../components/passwordInput';
@@ -20,6 +22,8 @@ const LoginScreen = ({ navigation }) => {
   const [focusedInput, setFocusedInput] = useState(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  const dispatch = useDispatch();
 
   const keyboardHide = () => {
     setIsShowKeyboard(false);
@@ -39,8 +43,7 @@ const LoginScreen = ({ navigation }) => {
   const isInputFocused = inputName => focusedInput === inputName;
 
   const onSubmitPress = () => {
-    console.log(email, password);
-    navigation.navigate('Home');
+    dispatch(authSignInUser({ email, password }));
     setEmail('');
     setPassword('');
   };
